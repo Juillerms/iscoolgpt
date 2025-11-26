@@ -32,11 +32,11 @@ jobs:
       with:
         push: true
         tags: |
-          ${{ secrets.DOCKER_USERNAME }}/devops-chat-backend:${{ steps.extract_branch.outputs.branch }}
-          ${{ secrets.DOCKER_USERNAME }}/devops-chat-backend:latest
+          ${{ secrets.DOCKER_USERNAME }}/iscoolgptbackend:${{ steps.extract_branch.outputs.branch }}
+          ${{ secrets.DOCKER_USERNAME }}/iscoolgptbackend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
     - name: Build successful
       run: |
         echo "✅ Docker images built and pushed successfully!"
-        echo "Backend: ${{ secrets.DOCKER_USERNAME }}/devops-chat-backend:${{ steps.extract_branch.outputs.branch }}"
+        echo "Backend: ${{ secrets.DOCKER_USERNAME }}/iscoolgptbackend:${{ steps.extract_branch.outputs.branch }}"

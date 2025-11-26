@@ -340,6 +340,7 @@ def ask_assistant(request: QuestionRequest):
             f"Responda de forma técnica, mas clara. "
             f"Pergunta: {request.question}"
         )
+        
         response = model.generate_content(prompt)
         return {"answer": response.text}
 

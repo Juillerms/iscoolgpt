@@ -1,7 +1,5 @@
 services:
   backend:
-    build:
-      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:

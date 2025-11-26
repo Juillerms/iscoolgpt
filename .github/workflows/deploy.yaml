@@ -36,7 +36,7 @@ jobs:
 
     - name: Copy files to EC2
       run: |
-        scp -i ~/.ssh/deploy_key docker-compose.prod.yml ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/docker-compose.yml
+        scp -i ~/.ssh/deploy_key docker-compose.yml ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/docker-compose.yml
         scp -i ~/.ssh/deploy_key .env ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/.env
 
     - name: Deploy on EC2

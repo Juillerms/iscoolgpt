@@ -1,0 +1,11 @@
+# Segurança: Nunca enviar chaves de API
+.env
+
+# Lixo do Python
+__pycache__/
+*.py[cod]
+
+# Ambientes virtuais (se tiveres criado)
+venv/
+.venv/
+env/

@@ -1,6 +1,6 @@
 services:
   backend:
-    build: .
+    image: ${DOCKER_USERNAME}/iscoolgptbackend:${IMAGE_TAG:-latest}
     ports:
       - "8000:8000"
     environment:

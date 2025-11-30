@@ -243,7 +243,7 @@ html_content = """
         </div>
         <div id="typing-indicator" class="typing">> Processando resposta...</div>
 
-        <div class="input-area">
+        <div class="input-area">    
             <div class="input-wrapper">
                 <textarea id="user-input" placeholder="Insira o comando ou pergunta..."></textarea>
                 <button class="btn-send" onclick="sendMessage()" id="send-btn">EXECUTAR</button>
@@ -311,7 +311,7 @@ html_content = """
             const msgDiv = document.createElement('div');
             msgDiv.className = 'message ' + className;
             // Converte quebras de linha em <br> para ficar bonito
-            msgDiv.innerHTML = text.replace(/\n/g, '<br>'); 
+            msgDiv.innerHTML = text.replace(/\\n/g, '<br>');
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
         }

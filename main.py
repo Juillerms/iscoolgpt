@@ -334,7 +334,7 @@ def ask_assistant(request: QuestionRequest):
         if not api_key:
             return {"answer": "ERRO: Configure a GEMINI_API_KEY no arquivo .env"}
 
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = (
             f"Aja como um especialista sênior em Cloud Computing. "
             f"Responda de forma técnica, mas clara. "

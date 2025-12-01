@@ -6,11 +6,10 @@ services:
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     
-    # --- Configuração do CloudWatch ---
+    # --- Configuração do CloudWatch (Simplificada) ---
     logging:
       driver: awslogs
       options:
-        awslogs-region: us-east-2       # Região do teu servidor (Ohio)
-        awslogs-group: /iscoolgpt/app   # Nome da pasta onde os logs ficarão
-        awslogs-create-group: "true"    # Cria a pasta automaticamente
-        awslogs-stream-prefix: ec2      # Prefixo para organizar os logs
+        awslogs-region: us-east-2       
+        awslogs-group: /iscoolgpt/app   
+        awslogs-create-group: "true"

@@ -23,7 +23,7 @@ class QuestionRequest(BaseModel):
     question: str
     topic: str = "Cloud Computing"
 
-# --- FRONTEND HIGH TECH ---
+# --- FRONTEND ---
 html_content = """
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -240,17 +240,39 @@ def ask_assistant(request: QuestionRequest):
         if not api_key:
             return {"answer": "ERRO: Configure a GEMINI_API_KEY no arquivo .env"}
 
-        # Tenta usar o modelo mais recente
+        # --- ESTRATÉGIA DINÂMICA (A CHAVE MESTRA) ---
+        # 1. Pede ao Google: "Diz-me o que posso usar"
+        valid_models = []
         try:
-            model = genai.GenerativeModel('gemini-1.5-flash-latest')
-            response = model.generate_content(f"Aja como especialista em Cloud. Responda: {request.question}")
-            return {"answer": response.text}
-        except Exception:
-            # Se falhar (404), usa o modelo PRO (que nunca falha)
-            print("Tentativa com Flash falhou, usando Pro")
-            model = genai.GenerativeModel('gemini-pro')
-            response = model.generate_content(f"Aja como especialista em Cloud. Responda: {request.question}")
-            return {"answer": response.text}
+            for m in genai.list_models():
+                if 'generateContent' in m.supported_generation_methods:
+                    valid_models.append(m.name)
+        except Exception as e:
+            return {"answer": f"Erro ao listar modelos: {str(e)}"}
+
+        if not valid_models:
+            return {"answer": "Erro Crítico: A sua chave API não tem permissão para usar NENHUM modelo. Verifique se criou a chave corretamente no Google AI Studio."}
+
+        # 2. Escolhe o primeiro modelo da lista (Geralmente é o melhor disponível)
+        chosen_model = valid_models[0]
+        
+        # Opcional: Tenta priorizar o 'gemini-1.5-flash' se ele existir na lista
+        for m in valid_models:
+            if 'flash' in m:
+                chosen_model = m
+                break
+
+        # 3. Usa o modelo escolhido
+        model = genai.GenerativeModel(chosen_model)
+        
+        prompt = (
+            f"Aja como um especialista sênior em Cloud Computing. "
+            f"Modelo usado: {chosen_model}. " # Debug: Mostra qual modelo usou
+            f"Pergunta: {request.question}"
+        )
+        
+        response = model.generate_content(prompt)
+        return {"answer": response.text}
 
     except Exception as e:
-        return {"answer": f"Erro crítico no sistema: {str(e)}"}
+        return {"answer": f"Erro no sistema: {str(e)}"}

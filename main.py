@@ -23,7 +23,7 @@ class QuestionRequest(BaseModel):
     question: str
     topic: str = "Cloud Computing"
 
-# --- FRONTEND HIGH TECH (CSS Cyberpunk + JS Chat) ---
+# --- FRONTEND HIGH TECH ---
 html_content = """
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -33,15 +33,10 @@ html_content = """
     <title>IsCoolGPT | Terminal</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
-
-        /* Scrollbar Personalizada */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f0c29; }
         ::-webkit-scrollbar-thumb { background: #302b63; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #00c6ff; }
-
         body {
-            /* Fundo Gradiente High Tech */
             background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             color: #fff;
             font-family: 'JetBrains Mono', monospace;
@@ -52,8 +47,6 @@ html_content = """
             margin: 0;
             overflow: hidden;
         }
-
-        /* Container com efeito de vidro (Glassmorphism) */
         .container {
             width: 90%;
             max-width: 900px;
@@ -69,8 +62,6 @@ html_content = """
             overflow: hidden;
             position: relative;
         }
-
-        /* Cabeçalho */
         .header {
             padding: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -79,7 +70,6 @@ html_content = """
             justify-content: space-between;
             align-items: center;
         }
-
         .header h1 {
             font-size: 1.2rem;
             margin: 0;
@@ -87,9 +77,7 @@ html_content = """
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-transform: uppercase;
-            letter-spacing: 2px;
         }
-
         .status-badge {
             font-size: 0.7rem;
             color: #00ff80;
@@ -98,8 +86,6 @@ html_content = """
             border-radius: 12px;
             background: rgba(0, 255, 128, 0.1);
         }
-
-        /* Área do Chat */
         #chat-box {
             flex: 1;
             padding: 20px;
@@ -108,16 +94,13 @@ html_content = """
             flex-direction: column;
             gap: 15px;
         }
-
         .message {
             max-width: 80%;
             padding: 15px;
             border-radius: 12px;
             line-height: 1.6;
             font-size: 0.9rem;
-            position: relative;
         }
-
         .user-message {
             align-self: flex-end;
             background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
@@ -125,7 +108,6 @@ html_content = """
             box-shadow: 0 5px 15px rgba(0, 114, 255, 0.3);
             border-bottom-right-radius: 2px;
         }
-
         .ai-message {
             align-self: flex-start;
             background: rgba(255, 255, 255, 0.05);
@@ -133,7 +115,6 @@ html_content = """
             color: #e2e8f0;
             border-bottom-left-radius: 2px;
         }
-
         .typing {
             font-size: 0.75rem;
             color: #00c6ff;
@@ -141,100 +122,42 @@ html_content = """
             display: none;
             animation: pulse 1.5s infinite;
         }
-
-        @keyframes pulse {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
-        }
-
-        /* Área de Input */
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
         .input-area {
             padding: 20px;
             background: rgba(0, 0, 0, 0.2);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-
-        .input-wrapper {
-            display: flex;
-            gap: 15px;
-            flex-direction: column;
-        }
-
+        .input-wrapper { display: flex; gap: 15px; flex-direction: column; }
         textarea {
-            width: 100%;
-            height: 60px;
+            width: 100%; height: 60px;
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            color: #fff;
-            font-family: 'JetBrains Mono', monospace;
-            resize: none;
-            outline: none;
-            box-sizing: border-box;
-            transition: border 0.3s;
+            border-radius: 10px; padding: 15px;
+            color: #fff; font-family: 'JetBrains Mono', monospace;
+            resize: none; outline: none; transition: border 0.3s;
         }
-
-        textarea:focus {
-            border-color: #00c6ff;
-            box-shadow: 0 0 10px rgba(0, 198, 255, 0.1);
-        }
-
+        textarea:focus { border-color: #00c6ff; }
         .btn-send {
-            align-self: flex-end;
-            background: transparent;
-            border: 1px solid #00c6ff;
-            color: #00c6ff;
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: bold;
-            padding: 10px 30px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
+            align-self: flex-end; background: transparent;
+            border: 1px solid #00c6ff; color: #00c6ff;
+            font-family: 'JetBrains Mono', monospace; font-weight: bold;
+            padding: 10px 30px; border-radius: 8px; cursor: pointer;
+            transition: all 0.3s; text-transform: uppercase;
         }
-
-        .btn-send:hover {
-            background: #00c6ff;
-            color: #000;
-            box-shadow: 0 0 15px rgba(0, 198, 255, 0.4);
-        }
-
-        .btn-send:disabled {
-            border-color: #444;
-            color: #444;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        /* Rodapé Links */
-        .links {
-            margin-top: 10px;
-            text-align: center;
-        }
-        
-        .links a {
-            color: rgba(255, 255, 255, 0.3);
-            text-decoration: none;
-            font-size: 0.7rem;
-            margin: 0 10px;
-            transition: color 0.3s;
-        }
-
-        .links a:hover {
-            color: #00c6ff;
-        }
+        .btn-send:hover { background: #00c6ff; color: #000; }
+        .btn-send:disabled { border-color: #444; color: #444; cursor: not-allowed; }
+        .links { margin-top: 10px; text-align: center; }
+        .links a { color: rgba(255, 255, 255, 0.3); text-decoration: none; font-size: 0.7rem; margin: 0 10px; }
+        .links a:hover { color: #00c6ff; }
     </style>
 </head>
 <body>
-
     <div class="container">
         <div class="header">
             <h1>IsCoolGPT_v1.0</h1>
             <div class="status-badge">● SYSTEM ONLINE</div>
         </div>
-
         <div id="chat-box">
             <div class="message ai-message">
                 > System initialized.<br>
@@ -242,7 +165,6 @@ html_content = """
             </div>
         </div>
         <div id="typing-indicator" class="typing">> Processando resposta...</div>
-
         <div class="input-area">    
             <div class="input-wrapper">
                 <textarea id="user-input" placeholder="Insira o comando ou pergunta..."></textarea>
@@ -251,66 +173,43 @@ html_content = """
             <div class="links">
                 <a href="/docs" target="_blank">[ DOCUMENTATION ]</a>
                 <a href="/health" target="_blank">[ STATUS CHECK ]</a>
+                <a href="/debug/models" target="_blank">[ DEBUG MODELS ]</a>
             </div>
         </div>
     </div>
-
     <script>
-        // Permite enviar com Enter (sem shift)
         document.getElementById("user-input").addEventListener("keydown", function(event) {
-            if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
+            if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); sendMessage(); }
         });
-
         async function sendMessage() {
             const input = document.getElementById('user-input');
-            const chatBox = document.getElementById('chat-box');
             const sendBtn = document.getElementById('send-btn');
             const typingIndicator = document.getElementById('typing-indicator');
-
             const question = input.value.trim();
             if (!question) return;
-
-            // 1. Adiciona mensagem do usuário
             appendMessage(question, 'user-message');
             input.value = '';
-            
-            // 2. Estado de carregamento
-            sendBtn.disabled = true;
-            sendBtn.innerText = "AGUARDE...";
+            sendBtn.disabled = true; sendBtn.innerText = "AGUARDE...";
             typingIndicator.style.display = 'block';
-
             try {
-                // 3. Envia para o Backend
                 const response = await fetch('/ask', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ question: question })
                 });
-
                 const data = await response.json();
-
-                // 4. Adiciona resposta da IA
                 appendMessage(data.answer || "Erro no processamento.", 'ai-message');
-            
             } catch (error) {
                 appendMessage("Falha de conexão com o servidor.", 'ai-message');
             } finally {
-                // 5. Restaura estado
-                sendBtn.disabled = false;
-                sendBtn.innerText = "EXECUTAR";
-                typingIndicator.style.display = 'none';
-                input.focus();
+                sendBtn.disabled = false; sendBtn.innerText = "EXECUTAR";
+                typingIndicator.style.display = 'none'; input.focus();
             }
         }
-
         function appendMessage(text, className) {
             const chatBox = document.getElementById('chat-box');
             const msgDiv = document.createElement('div');
             msgDiv.className = 'message ' + className;
-            // Converte quebras de linha em <br> para ficar bonito
             msgDiv.innerHTML = text.replace(/\\n/g, '<br>');
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -328,21 +227,12 @@ def read_root():
 def health_check():
     return {"status": "active", "system": "IsCoolGPT", "env": "Production"}
 
-# Rota de Diagnóstico para ver os modelos disponíveis
 @app.get("/debug/models")
 def list_models():
     try:
-        if not api_key:
-            return {"error": "Sem chave de API configurada"}
-            
-        model_list = []
-        # Lista todos os modelos que suportam gerar texto
-        for m in genai.list_models():
-            if 'generateContent' in m.supported_generation_methods:
-                model_list.append(m.name)
-        return {"available_models": model_list}
-    except Exception as e:
-        return {"error": str(e)}
+        if not api_key: return {"error": "Sem chave"}
+        return {"models": [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]}
+    except Exception as e: return {"error": str(e)}
 
 @app.post("/ask")
 def ask_assistant(request: QuestionRequest):
@@ -350,16 +240,17 @@ def ask_assistant(request: QuestionRequest):
         if not api_key:
             return {"answer": "ERRO: Configure a GEMINI_API_KEY no arquivo .env"}
 
-        # Atualizado para o modelo correto
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        prompt = (
-            f"Aja como um especialista sênior em Cloud Computing. "
-            f"Responda de forma técnica, mas clara. "
-            f"Pergunta: {request.question}"
-        )
-        
-        response = model.generate_content(prompt)
-        return {"answer": response.text}
+        # Tenta usar o modelo mais recente
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash-latest')
+            response = model.generate_content(f"Aja como especialista em Cloud. Responda: {request.question}")
+            return {"answer": response.text}
+        except Exception:
+            # Se falhar (404), usa o modelo PRO (que nunca falha)
+            print("Tentativa com Flash falhou, usando Pro")
+            model = genai.GenerativeModel('gemini-pro')
+            response = model.generate_content(f"Aja como especialista em Cloud. Responda: {request.question}")
+            return {"answer": response.text}
 
     except Exception as e:
         return {"answer": f"Erro crítico no sistema: {str(e)}"}

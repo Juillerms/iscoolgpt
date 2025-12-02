@@ -328,12 +328,29 @@ def read_root():
 def health_check():
     return {"status": "active", "system": "IsCoolGPT", "env": "Production"}
 
+# Rota de Diagnóstico para ver os modelos disponíveis
+@app.get("/debug/models")
+def list_models():
+    try:
+        if not api_key:
+            return {"error": "Sem chave de API configurada"}
+            
+        model_list = []
+        # Lista todos os modelos que suportam gerar texto
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                model_list.append(m.name)
+        return {"available_models": model_list}
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.post("/ask")
 def ask_assistant(request: QuestionRequest):
     try:
         if not api_key:
             return {"answer": "ERRO: Configure a GEMINI_API_KEY no arquivo .env"}
 
+        # Atualizado para o modelo correto
         model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = (
             f"Aja como um especialista sênior em Cloud Computing. "
@@ -346,4 +363,3 @@ def ask_assistant(request: QuestionRequest):
 
     except Exception as e:
         return {"answer": f"Erro crítico no sistema: {str(e)}"}
-    

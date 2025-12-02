@@ -11,7 +11,7 @@ api_key = os.getenv("GEMINI_API_KEY")
 
 app = FastAPI(
     title="IsCoolGPT API",
-    description="Backend Conexão Direta",
+    description="Backend Conexão Direta REST",
     version="1.0.0"
 )
 
@@ -19,7 +19,7 @@ class QuestionRequest(BaseModel):
     question: str
     topic: str = "Cloud Computing"
 
-# --- FRONTEND ---
+# --- FRONTEND (MANTIDO IGUAL) ---
 html_content = """
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -229,7 +229,7 @@ def ask_assistant(request: QuestionRequest):
             return {"answer": "ERRO: Configure a GEMINI_API_KEY no arquivo .env"}
 
         # --- CONEXÃO DIRETA (REST API) ---
-        # Isso evita erros de biblioteca desatualizada ou conflitos de versão
+        # Aqui conectamos direto na URL do Google, ignorando a biblioteca com defeito
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         
         payload = {
@@ -238,18 +238,19 @@ def ask_assistant(request: QuestionRequest):
             }]
         }
         
+        # Faz a chamada HTTP direta
         response = requests.post(url, json=payload)
         
         if response.status_code == 200:
             data = response.json()
-            # Extrai o texto da resposta complexa do Google
             try:
+                # O Google devolve um JSON complexo, aqui pegamos só o texto
                 answer = data['candidates'][0]['content']['parts'][0]['text']
                 return {"answer": answer}
             except:
-                return {"answer": "Recebi resposta, mas não consegui ler o texto. Tente novamente."}
+                return {"answer": "Recebi resposta do Google, mas não consegui ler o texto."}
         else:
-            # Se der erro 429 ou 404, vai mostrar exatamente o que o Google disse
+            # Se der erro, mostra exatamente o que o Google respondeu
             return {"answer": f"Erro do Google ({response.status_code}): {response.text}"}
 
     except Exception as e:

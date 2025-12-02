@@ -346,3 +346,4 @@ def ask_assistant(request: QuestionRequest):
 
     except Exception as e:
         return {"answer": f"Erro crítico no sistema: {str(e)}"}
+    

@@ -1,25 +1,30 @@
 import os
-import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from groq import Groq  # Nova biblioteca
 
 # 1. Carrega variáveis
 load_dotenv()
-api_key = os.getenv("GEMINI_API_KEY")
+
+# 2. Configura Cliente Groq
+# Ele procura automaticamente por os.environ.get("GROQ_API_KEY")
+client = Groq(
+    api_key=os.environ.get("GROQ_API_KEY"),
+)
 
 app = FastAPI(
     title="IsCoolGPT API",
-    description="Backend Conexão Direta REST",
-    version="1.0.0"
+    description="Backend com Groq Llama 3",
+    version="2.0.0"
 )
 
 class QuestionRequest(BaseModel):
     question: str
     topic: str = "Cloud Computing"
 
-# --- FRONTEND (MANTIDO IGUAL) ---
+# --- FRONTEND (MANTIDO IGUAL AO TEU) ---
 html_content = """
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -151,13 +156,13 @@ html_content = """
 <body>
     <div class="container">
         <div class="header">
-            <h1>IsCoolGPT_v1.0</h1>
-            <div class="status-badge">● SYSTEM ONLINE</div>
+            <h1>IsCoolGPT_v2.0</h1>
+            <div class="status-badge">● GROQ ONLINE</div>
         </div>
         <div id="chat-box">
             <div class="message ai-message">
                 > System initialized.<br>
-                > Olá! Sou o teu assistente de Cloud Computing. Pergunta-me algo.
+                > Olá! Sou o teu assistente Cloud (Powered by Llama 3).
             </div>
         </div>
         <div id="typing-indicator" class="typing">> Processando resposta...</div>
@@ -220,38 +225,28 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "active", "system": "IsCoolGPT", "env": "Production"}
+    return {"status": "active", "provider": "Groq Llama 3"}
 
 @app.post("/ask")
 def ask_assistant(request: QuestionRequest):
     try:
-        if not api_key:
-            return {"answer": "ERRO: Configure a GEMINI_API_KEY no arquivo .env"}
+        # A Groq não exige lista de modelos complexa, este modelo é padrão e muito estável
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Você é um especialista sênior em Cloud Computing. Responda de forma técnica, didática e em português."
+                },
+                {
+                    "role": "user",
+                    "content": request.question,
+                }
+            ],
+            model="llama-3.3-70b-versatile", # Modelo rápido e inteligente
+            temperature=0.5,
+        )
 
-        # --- CONEXÃO DIRETA (REST API) ---
-        # Aqui conectamos direto na URL do Google, ignorando a biblioteca com defeito
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-        
-        payload = {
-            "contents": [{
-                "parts": [{"text": f"Aja como especialista em Cloud. Responda de forma curta: {request.question}"}]
-            }]
-        }
-        
-        # Faz a chamada HTTP direta
-        response = requests.post(url, json=payload)
-        
-        if response.status_code == 200:
-            data = response.json()
-            try:
-                # O Google devolve um JSON complexo, aqui pegamos só o texto
-                answer = data['candidates'][0]['content']['parts'][0]['text']
-                return {"answer": answer}
-            except:
-                return {"answer": "Recebi resposta do Google, mas não consegui ler o texto."}
-        else:
-            # Se der erro, mostra exatamente o que o Google respondeu
-            return {"answer": f"Erro do Google ({response.status_code}): {response.text}"}
+        return {"answer": chat_completion.choices[0].message.content}
 
     except Exception as e:
-        return {"answer": f"Erro interno: {str(e)}"}
+        return {"answer": f"Erro no sistema: {str(e)}"}

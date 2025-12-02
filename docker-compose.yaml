@@ -4,12 +4,10 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-    
-    # --- Configuração do CloudWatch (Simplificada) ---
+      - GROQ_API_KEY=${GROQ_API_KEY}  # Mudamos aqui
     logging:
       driver: awslogs
       options:
-        awslogs-region: us-east-2       
-        awslogs-group: /iscoolgpt/app   
+        awslogs-region: us-east-2
+        awslogs-group: /iscoolgpt/app
         awslogs-create-group: "true"

@@ -3,13 +3,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from groq import Groq  # Nova biblioteca
+from groq import Groq
 
 # 1. Carrega variáveis
 load_dotenv()
 
 # 2. Configura Cliente Groq
-# Ele procura automaticamente por os.environ.get("GROQ_API_KEY")
 client = Groq(
     api_key=os.environ.get("GROQ_API_KEY"),
 )
@@ -17,14 +16,14 @@ client = Groq(
 app = FastAPI(
     title="IsCoolGPT API",
     description="Backend com Groq Llama 3",
-    version="2.0.0"
+    version="2.1.0"
 )
 
 class QuestionRequest(BaseModel):
     question: str
     topic: str = "Cloud Computing"
 
-# --- FRONTEND (MANTIDO IGUAL AO TEU) ---
+# --- FRONTEND (COM FORMATAÇÃO MARKDOWN) ---
 html_content = """
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -32,11 +31,15 @@ html_content = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IsCoolGPT | Terminal</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f0c29; }
         ::-webkit-scrollbar-thumb { background: #302b63; border-radius: 4px; }
+        
         body {
             background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             color: #fff;
@@ -102,6 +105,29 @@ html_content = """
             line-height: 1.6;
             font-size: 0.9rem;
         }
+        
+        /* Estilos para o Markdown renderizado (Negrito, Listas, etc) */
+        .message strong { color: #00c6ff; font-weight: bold; }
+        .message em { color: #ffd700; font-style: italic; }
+        .message ul, .message ol { margin: 10px 0; padding-left: 20px; }
+        .message li { margin-bottom: 5px; }
+        .message p { margin: 0 0 10px 0; }
+        .message p:last-child { margin-bottom: 0; }
+        .message code { 
+            background: rgba(0,0,0,0.3); 
+            padding: 2px 5px; 
+            border-radius: 4px; 
+            font-family: monospace; 
+            color: #ff79c6;
+        }
+        .message pre {
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
         .user-message {
             align-self: flex-end;
             background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
@@ -156,13 +182,13 @@ html_content = """
 <body>
     <div class="container">
         <div class="header">
-            <h1>IsCoolGPT_v2.0</h1>
+            <h1>IsCoolGPT_v2.1</h1>
             <div class="status-badge">● GROQ ONLINE</div>
         </div>
         <div id="chat-box">
             <div class="message ai-message">
                 > System initialized.<br>
-                > Olá! Sou o teu assistente Cloud (Powered by Llama 3).
+                > Olá! Sou o teu assistente Cloud.
             </div>
         </div>
         <div id="typing-indicator" class="typing">> Processando resposta...</div>
@@ -181,16 +207,21 @@ html_content = """
         document.getElementById("user-input").addEventListener("keydown", function(event) {
             if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); sendMessage(); }
         });
+        
         async function sendMessage() {
             const input = document.getElementById('user-input');
             const sendBtn = document.getElementById('send-btn');
             const typingIndicator = document.getElementById('typing-indicator');
             const question = input.value.trim();
             if (!question) return;
-            appendMessage(question, 'user-message');
+            
+            // Mensagem do usuário (sem Markdown, apenas texto)
+            appendMessage(question, 'user-message', false);
             input.value = '';
+            
             sendBtn.disabled = true; sendBtn.innerText = "AGUARDE...";
             typingIndicator.style.display = 'block';
+            
             try {
                 const response = await fetch('/ask', {
                     method: 'POST',
@@ -198,19 +229,29 @@ html_content = """
                     body: JSON.stringify({ question: question })
                 });
                 const data = await response.json();
-                appendMessage(data.answer || "Erro no processamento.", 'ai-message');
+                // Mensagem da IA (COM Markdown renderizado)
+                appendMessage(data.answer || "Erro no processamento.", 'ai-message', true);
             } catch (error) {
-                appendMessage("Falha de conexão com o servidor.", 'ai-message');
+                appendMessage("Falha de conexão com o servidor.", 'ai-message', false);
             } finally {
                 sendBtn.disabled = false; sendBtn.innerText = "EXECUTAR";
                 typingIndicator.style.display = 'none'; input.focus();
             }
         }
-        function appendMessage(text, className) {
+
+        function appendMessage(text, className, isMarkdown) {
             const chatBox = document.getElementById('chat-box');
             const msgDiv = document.createElement('div');
             msgDiv.className = 'message ' + className;
-            msgDiv.innerHTML = text.replace(/\\n/g, '<br>');
+            
+            if (isMarkdown) {
+                // AQUI ESTÁ A MÁGICA: O 'marked.parse' transforma **texto** em <b>texto</b>
+                msgDiv.innerHTML = marked.parse(text);
+            } else {
+                // Para o usuário, usamos texto puro para segurança
+                msgDiv.textContent = text;
+            }
+            
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -230,22 +271,20 @@ def health_check():
 @app.post("/ask")
 def ask_assistant(request: QuestionRequest):
     try:
-        # A Groq não exige lista de modelos complexa, este modelo é padrão e muito estável
         chat_completion = client.chat.completions.create(
             messages=[
                 {
                     "role": "system",
-                    "content": "Você é um especialista sênior em Cloud Computing. Responda de forma técnica, didática e em português."
+                    "content": "Você é um especialista sênior em Cloud Computing. Responda de forma técnica, didática e em português. Use formatação Markdown (negrito, listas) para deixar a resposta clara."
                 },
                 {
                     "role": "user",
                     "content": request.question,
                 }
             ],
-            model="llama-3.3-70b-versatile", # Modelo rápido e inteligente
+            model="llama-3.3-70b-versatile",
             temperature=0.5,
         )
-
         return {"answer": chat_completion.choices[0].message.content}
 
     except Exception as e:

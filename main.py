@@ -1,5 +1,5 @@
 import os
-import google.generativeai as genai
+import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -7,15 +7,11 @@ from dotenv import load_dotenv
 
 # 1. Carrega variáveis
 load_dotenv()
-
-# 2. Configura Gemini
 api_key = os.getenv("GEMINI_API_KEY")
-if api_key:
-    genai.configure(api_key=api_key)
 
 app = FastAPI(
     title="IsCoolGPT API",
-    description="Backend com Google Gemini",
+    description="Backend Conexão Direta",
     version="1.0.0"
 )
 
@@ -173,7 +169,6 @@ html_content = """
             <div class="links">
                 <a href="/docs" target="_blank">[ DOCUMENTATION ]</a>
                 <a href="/health" target="_blank">[ STATUS CHECK ]</a>
-                <a href="/debug/models" target="_blank">[ DEBUG MODELS ]</a>
             </div>
         </div>
     </div>
@@ -227,52 +222,35 @@ def read_root():
 def health_check():
     return {"status": "active", "system": "IsCoolGPT", "env": "Production"}
 
-@app.get("/debug/models")
-def list_models():
-    try:
-        if not api_key: return {"error": "Sem chave"}
-        return {"models": [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]}
-    except Exception as e: return {"error": str(e)}
-
 @app.post("/ask")
 def ask_assistant(request: QuestionRequest):
     try:
         if not api_key:
             return {"answer": "ERRO: Configure a GEMINI_API_KEY no arquivo .env"}
 
-        # --- ESTRATÉGIA DINÂMICA (A CHAVE MESTRA) ---
-        # 1. Pede ao Google: "Diz-me o que posso usar"
-        valid_models = []
-        try:
-            for m in genai.list_models():
-                if 'generateContent' in m.supported_generation_methods:
-                    valid_models.append(m.name)
-        except Exception as e:
-            return {"answer": f"Erro ao listar modelos: {str(e)}"}
-
-        if not valid_models:
-            return {"answer": "Erro Crítico: A sua chave API não tem permissão para usar NENHUM modelo. Verifique se criou a chave corretamente no Google AI Studio."}
-
-        # 2. Escolhe o primeiro modelo da lista (Geralmente é o melhor disponível)
-        chosen_model = valid_models[0]
+        # --- CONEXÃO DIRETA (REST API) ---
+        # Isso evita erros de biblioteca desatualizada ou conflitos de versão
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         
-        # Opcional: Tenta priorizar o 'gemini-1.5-flash' se ele existir na lista
-        for m in valid_models:
-            if 'flash' in m:
-                chosen_model = m
-                break
-
-        # 3. Usa o modelo escolhido
-        model = genai.GenerativeModel(chosen_model)
+        payload = {
+            "contents": [{
+                "parts": [{"text": f"Aja como especialista em Cloud. Responda de forma curta: {request.question}"}]
+            }]
+        }
         
-        prompt = (
-            f"Aja como um especialista sênior em Cloud Computing. "
-            f"Modelo usado: {chosen_model}. " # Debug: Mostra qual modelo usou
-            f"Pergunta: {request.question}"
-        )
+        response = requests.post(url, json=payload)
         
-        response = model.generate_content(prompt)
-        return {"answer": response.text}
+        if response.status_code == 200:
+            data = response.json()
+            # Extrai o texto da resposta complexa do Google
+            try:
+                answer = data['candidates'][0]['content']['parts'][0]['text']
+                return {"answer": answer}
+            except:
+                return {"answer": "Recebi resposta, mas não consegui ler o texto. Tente novamente."}
+        else:
+            # Se der erro 429 ou 404, vai mostrar exatamente o que o Google disse
+            return {"answer": f"Erro do Google ({response.status_code}): {response.text}"}
 
     except Exception as e:
-        return {"answer": f"Erro no sistema: {str(e)}"}
+        return {"answer": f"Erro interno: {str(e)}"}
